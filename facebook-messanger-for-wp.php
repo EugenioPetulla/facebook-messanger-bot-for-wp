@@ -5,6 +5,7 @@ Description: A complete and configurable Messenger bot for WordPress and/or Wooc
 Plugin URI:
 Author: iGenius
 Author URI:
+Text Domain: text-domain
 Version: 1.0
 License: GPLv3
  */
@@ -12,16 +13,42 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+define ( 'FACMESBOT_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define ( 'FACMESBOT_PLUGIN_DIR', plugin_dir_url( __FILE__ ) );
+define ( 'FACMESBOT_PLUGIN_SLUG', basename( dirname( __FILE__ ) ) );
+define ( 'FACMESBOT_PLUGIN_VERSION', '1.0' );
+define ( 'FACMESBOT_PLUGIN_VERSION_NAME', 'facmesbot_version' );
+
+// Create text domain for localization purpose, po files must be in languages directory
+function facebook_messenger_bot_text_domain(){
+
+	load_plugin_textdomain('text-domain', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+
+}
+
+
+add_action('plugins_loaded', 'facebook_messenger_bot_text_domain');
+
+require_once 'inc/class-facebook-messenger-bot-options.php';
+
 class Mess_Bot {
+
+	private $options;
+
 	function __construct() {
+
+
 		// Plugin Namespace
 		$this->namespace = 'mess-bot';
+
+		//options
+		$this->options = get_option( 'facebook_messenger_bot' );
 		// Verify Token
-		$this->verify_token = '';
+		$this->verify_token = $this->options['verify_token'];
 		// Facebook URL for post
-		$this->graph_api_url = '';
+		$this->graph_api_url = $this->options['graph_api_url'];
 		// Facebook Page access token
-		$this->access_token = '';
+		$this->access_token = $this->options['access_token'];
 
 		// REST API ROUTE
 		add_action('rest_api_init', array($this, 'register_routes'));
@@ -86,7 +113,7 @@ class Mess_Bot {
 					),
 				),);
 				break;
-			
+
 			case '/info':
 			case '/help':
 			case 'info':
@@ -96,7 +123,7 @@ class Mess_Bot {
 				break;
 
 			default:
-				
+
 				break;
 		}
 		$data = array(
